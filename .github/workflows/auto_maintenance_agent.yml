@@ -1,0 +1,104 @@
+name: Auto-Maintenance Agent
+
+on:
+  schedule:
+    - cron: "0 2 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  weekly-maintenance-audit:
+    name: Weekly Dependency, QGIS Compatibility, and QA Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install maintenance and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Run pip-audit vulnerability scan
+        id: pip_audit
+        continue-on-error: true
+        run: |
+          pip-audit -r requirements-dev.txt --format json --output pip_audit.json
+
+      - name: Fetch latest upstream QGIS release tag
+        id: qgis_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          QGIS_TAG=$(python -c "from scripts.agy_auto_maintainer import fetch_latest_qgis_release; import os; print(fetch_latest_qgis_release(os.environ.get('GITHUB_TOKEN')).get('tag', 'unknown'))")
+          echo "tag=${QGIS_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Detected upstream QGIS tag: ${QGIS_TAG}"
+
+      - name: Run Pytest verification suite
+        id: pytest_run
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pytest -v | tee pytest_maintenance.log
+
+      - name: Run Antigravity SDK auto-maintenance agent
+        id: agy_maintainer
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/agy_auto_maintainer.py \
+            --pip-audit-json pip_audit.json \
+            --metadata-txt vector_data_office_boy/metadata.txt \
+            --requirements-file requirements-dev.txt \
+            --pytest-log pytest_maintenance.log \
+            --agent-md AGENT.md \
+            --qgis-latest-tag "${{ steps.qgis_release.outputs.tag }}" \
+            --output-json maintenance_report.json \
+            --output-md "${{ runner.temp }}/maintenance_report.md"
+
+          NEEDS_ACTION=$(python -c "import json; print('true' if json.load(open('maintenance_report.json', encoding='utf-8')).get('needs_action') else 'false')")
+          echo "needs_action=${NEEDS_ACTION}" >> "$GITHUB_OUTPUT"
+          echo "Maintenance needs_action=${NEEDS_ACTION}"
+
+      - name: Stage maintenance report when action is needed
+        if: ${{ steps.agy_maintainer.outputs.needs_action == 'true' }}
+        run: |
+          mkdir -p .github/maintenance
+          cp "${{ runner.temp }}/maintenance_report.md" .github/maintenance/WEEKLY_REPORT.md
+          rm -f pip_audit.json pytest_maintenance.log maintenance_report.json
+
+      - name: Clean temporary scan artifacts when repository is healthy
+        if: ${{ steps.agy_maintainer.outputs.needs_action != 'true' }}
+        run: |
+          rm -f pip_audit.json pytest_maintenance.log maintenance_report.json
+
+      - name: Open automated maintenance Pull Request (never auto-merged)
+        if: ${{ steps.agy_maintainer.outputs.needs_action == 'true' }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: chore/auto-maintenance-weekly
+          base: main
+          delete-branch: true
+          commit-message: |
+            chore(maintenance): publish weekly automated maintenance audit report
+
+            - Capture weekly pip-audit, Pytest, and upstream QGIS compatibility diagnostics.
+            - Surface recommended dependency or metadata patches for manual Project Owner review.
+          title: "chore(maintenance): weekly dependency and QGIS compatibility audit"
+          body-path: ${{ runner.temp }}/maintenance_report.md
+          add-paths: |
+            .github/maintenance/WEEKLY_REPORT.md
