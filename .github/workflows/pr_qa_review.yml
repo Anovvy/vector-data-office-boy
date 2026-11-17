@@ -1,0 +1,68 @@
+name: Antigravity PR QA Review
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  agy-qa-review:
+    name: Senior QA Engineer PR Review
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR head with base history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install QA Reviewer and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Run Pytest and capture summary log
+        id: pytest_run
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pytest -v | tee pytest_summary.log
+
+      - name: Collect PR diff and metadata
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          printf '%s' "$PR_BODY" > pr_body.txt
+          git diff --name-status "${BASE_SHA}...${HEAD_SHA}" > changed_files.txt
+          git diff "${BASE_SHA}...${HEAD_SHA}" -- ':!data_test/*' > pr_diff.txt
+
+      - name: Run Antigravity SDK PR QA Reviewer
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/agy_pr_reviewer.py \
+            --repo "${{ github.repository }}" \
+            --pr-number "${{ github.event.pull_request.number }}" \
+            --commit-sha "${{ github.event.pull_request.head.sha }}" \
+            --pr-title "${{ github.event.pull_request.title }}" \
+            --pr-body-file pr_body.txt \
+            --changed-files changed_files.txt \
+            --diff-file pr_diff.txt \
+            --test-log pytest_summary.log \
+            --agent-md AGENT.md
