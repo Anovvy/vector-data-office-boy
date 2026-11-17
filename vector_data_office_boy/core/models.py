@@ -12,25 +12,29 @@ ERROR_SLIVER = "SLIVER_POLYGON"
 ERROR_COLORS: dict[str, dict[str, object]] = {
     ERROR_SELF_INTERSECTION: {
         "fill": "#FF8C00",
-        "stroke": "#B35900",
+        "stroke": "#FF8C00",
+        "stroke_width_mm": 5.0,
         "opacity": 0.65,
         "label": "Ring Self-Intersection",
     },
     ERROR_OVERLAP: {
         "fill": "#FF2400",
-        "stroke": "#800000",
+        "stroke": "#FF2400",
+        "stroke_width_mm": 1.5,
         "opacity": 0.70,
         "label": "Overlap Polygon",
     },
     ERROR_GAP: {
         "fill": "#9B30FF",
-        "stroke": "#4B0082",
+        "stroke": "#9B30FF",
+        "stroke_width_mm": 5.0,
         "opacity": 0.75,
         "label": "Internal Gap",
     },
     ERROR_SLIVER: {
         "fill": "#FFD700",
-        "stroke": "#997A00",
+        "stroke": "#FFD700",
+        "stroke_width_mm": 5.0,
         "opacity": 0.75,
         "label": "Sliver Polygon",
     },

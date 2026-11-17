@@ -103,11 +103,21 @@ def qgis_app() -> Iterator[object]:
 
 
 def test_error_colors_and_layer_names_contract() -> None:
-    """Verify exact color codes and temporary memory layer names for all 4 sections."""
+    """Verify exact color codes, stroke widths, and layer names for all 4 sections."""
     assert ERROR_COLORS[ERROR_SELF_INTERSECTION]["fill"] == "#FF8C00"
     assert ERROR_COLORS[ERROR_OVERLAP]["fill"] == "#FF2400"
     assert ERROR_COLORS[ERROR_GAP]["fill"] == "#9B30FF"
     assert ERROR_COLORS[ERROR_SLIVER]["fill"] == "#FFD700"
+
+    for error_type, style in ERROR_COLORS.items():
+        assert style["stroke"] == style["fill"], (
+            f"Stroke color must match fill color for {error_type}"
+        )
+
+    assert ERROR_COLORS[ERROR_SELF_INTERSECTION]["stroke_width_mm"] == 5.0
+    assert ERROR_COLORS[ERROR_OVERLAP]["stroke_width_mm"] == 1.5
+    assert ERROR_COLORS[ERROR_GAP]["stroke_width_mm"] == 5.0
+    assert ERROR_COLORS[ERROR_SLIVER]["stroke_width_mm"] == 5.0
 
     assert ERROR_LAYER_NAMES == {
         ERROR_SELF_INTERSECTION: "Error_Ring_Self_Intersection",
@@ -127,7 +137,7 @@ def test_metadata_txt_required_keys() -> None:
     general = dict(parser.items("general"))
 
     assert general["name"] == "Vector Data Office Boy"
-    assert general["version"] == "1.0.0"
+    assert general["version"] == "1.0.1"
     assert general["qgisMinimumVersion"] == "3.22"
     assert general["author"] == "Bayu Nabiil"
     assert general["email"] == "bayunabiil1365@gmail.com"
@@ -232,7 +242,13 @@ def test_pyqgis_temporary_error_layer_and_single_symbol_renderer(
     apply_single_error_symbology(layer, error_type)
     renderer = layer.renderer()
     assert isinstance(renderer, QgsSingleSymbolRenderer)
-    assert renderer.symbol().color().name().lower() == expected_hex
+    symbol = renderer.symbol()
+    assert symbol.color().name().lower() == expected_hex
+    symbol_layer = symbol.symbolLayer(0)
+    assert symbol_layer.strokeColor().name().lower() == expected_hex
+    assert symbol_layer.strokeWidth() == pytest.approx(
+        float(ERROR_COLORS[error_type]["stroke_width_mm"])
+    )
 
 
 @pytest.mark.skipif(not HAS_QGIS, reason="PyQGIS is not available in this Python environment.")
