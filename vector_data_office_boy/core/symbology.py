@@ -94,11 +94,13 @@ def apply_single_error_symbology(layer: Any, error_type: str) -> None:
         raise ValueError(f"Unsupported error_type '{error_type}' for symbology.")
 
     style = ERROR_COLORS[error_type]
+    stroke_width_mm = float(style.get("stroke_width_mm", 0.6))
     symbol = QgsFillSymbol.createSimple(
         {
             "color": str(style["fill"]),
             "outline_color": str(style["stroke"]),
-            "outline_width": "0.6",
+            "outline_width": str(stroke_width_mm),
+            "outline_width_unit": "MM",
             "style": "solid",
             "outline_style": "solid",
         }

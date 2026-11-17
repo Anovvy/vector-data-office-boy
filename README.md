@@ -26,10 +26,10 @@ Vector Data Office Boy enforces a deterministic four-stage topology cleaning ord
 
 | Order | Section | Error Type Key | Temporary Memory Layer Name | Fill Color | Stroke Color | Scan Output | Fix It Behavior |
 |---|---|---|---|---|---|---|---|
-| 1 | Ring Self-Intersection | `RING_SELF_INTERSECTION` | `Error_Ring_Self_Intersection` | Orange (`#FF8C00`) | `#B35900` | Circular `5 m` marker polygons at invalid ring crossings and acute boundary spikes | Repairs invalid rings via structure-preserving `make_valid` + polygonal filtering, and optionally prunes acute boundary spikes |
-| 2 | Overlap Polygon | `OVERLAP` | `Error_Overlap_Polygon` | Red (`#FF2400`) | `#800000` | Exact polygonal footprint of pairwise intersections and 100% contained overlaps | Cuts interior holes in host polygons for contained enclaves (Option A default) and eliminates partial/micro overlaps via precision coverage noding |
-| 3 | Internal Gap | `GAP` | `Error_Internal_Gap` | Purple (`#9B30FF`) | `#4B0082` | Exact geometry of interior voids extracted strictly from `unary_union.interiors` | Merges every internal gap into an adjacent polygon while strictly preserving outer dataset boundaries (`exterior`) |
-| 4 | Sliver Polygon | `SLIVER_POLYGON` | `Error_Sliver_Polygon` | Yellow (`#FFD700`) | `#997A00` | Standalone micro/thin slivers and tiny disconnected `MultiPolygon` sub-parts | Prunes micro `MultiPolygon` fragments and merges standalone slivers into touching neighbors |
+| 1 | Ring Self-Intersection | `RING_SELF_INTERSECTION` | `Error_Ring_Self_Intersection` | Orange (`#FF8C00`) | `#FF8C00` (`5.0 mm`) | Circular `5 m` marker polygons at invalid ring crossings and acute boundary spikes | Repairs invalid rings via structure-preserving `make_valid` + polygonal filtering, and optionally prunes acute boundary spikes |
+| 2 | Overlap Polygon | `OVERLAP` | `Error_Overlap_Polygon` | Red (`#FF2400`) | `#FF2400` (`1.5 mm`) | Exact polygonal footprint of pairwise intersections and 100% contained overlaps | Cuts interior holes in host polygons for contained enclaves (Option A default) and eliminates partial/micro overlaps via precision coverage noding |
+| 3 | Internal Gap | `GAP` | `Error_Internal_Gap` | Purple (`#9B30FF`) | `#9B30FF` (`5.0 mm`) | Exact geometry of interior voids extracted strictly from `unary_union.interiors` | Merges every internal gap into an adjacent polygon while strictly preserving outer dataset boundaries (`exterior`) |
+| 4 | Sliver Polygon | `SLIVER_POLYGON` | `Error_Sliver_Polygon` | Yellow (`#FFD700`) | `#FFD700` (`5.0 mm`) | Standalone micro/thin slivers and tiny disconnected `MultiPolygon` sub-parts | Prunes micro `MultiPolygon` fragments and merges standalone slivers into touching neighbors |
 
 ### Diagnostic Scan Attribute Schema (11 Columns)
 
