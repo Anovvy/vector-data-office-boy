@@ -137,7 +137,7 @@ def test_metadata_txt_required_keys() -> None:
     general = dict(parser.items("general"))
 
     assert general["name"] == "Vector Data Office Boy"
-    assert general["version"] == "1.0.0"
+    assert general["version"] == "1.0.1"
     assert general["qgisMinimumVersion"] == "3.22"
     assert general["author"] == "Bayu Nabiil"
     assert general["email"] == "bayunabiil1365@gmail.com"

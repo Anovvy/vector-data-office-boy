@@ -4,7 +4,7 @@
 
 [![CI Pipeline](https://github.com/Anovvy/vektor-data-office-boy/actions/workflows/ci.yml/badge.svg)](https://github.com/Anovvy/vektor-data-office-boy/actions/workflows/ci.yml)
 [![QGIS Minimum Version](https://img.shields.io/badge/QGIS-%3E%3D%203.22-589632.svg)](https://qgis.org/)
-[![Plugin Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](https://github.com/Anovvy/vektor-data-office-boy/releases)
+[![Plugin Version](https://img.shields.io/badge/Version-1.0.1-blue.svg)](https://github.com/Anovvy/vektor-data-office-boy/releases)
 [![License: GPL-2.0-or-later](https://img.shields.io/badge/License-GPL--2.0--or--later-orange.svg)](LICENSE)
 
 ## Overview and Problem Statement
@@ -187,7 +187,7 @@ bandit -c pyproject.toml -r scripts vector_data_office_boy
 pytest -v
 
 # Package and validate plugin ZIP + SHA256SUMS.txt
-python scripts/package_plugin.py --validate --check-tag v1.0.0
+python scripts/package_plugin.py --validate --check-tag v1.0.1
 
 # Install locally and verify inside headless PyQGIS (example on Windows QGIS LTR)
 & "C:\Program Files\QGIS 3.44.15\bin\python-qgis-ltr.bat" scripts\install_to_local_qgis.py --verify

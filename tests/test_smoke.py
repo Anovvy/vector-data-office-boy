@@ -111,8 +111,8 @@ def test_scripts_compile_cleanly_and_have_no_emojis(script_rel_path: str) -> Non
 
 def test_package_plugin_builds_clean_zip_and_checksum(tmp_path: Path) -> None:
     """Verify package_plugin builds a valid QGIS archive without forbidden files."""
-    meta = validate_plugin_source(expected_tag="v1.0.0")
-    assert meta["version"] == "1.0.0"
+    meta = validate_plugin_source(expected_tag="v1.0.1")
+    assert meta["version"] == "1.0.1"
 
     archive_path, checksum_path = build_plugin_archive(output_dir=tmp_path)
     validate_plugin_archive(archive_path)

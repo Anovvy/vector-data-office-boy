@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-17
+
+### Changed
+- Matched temporary error layer stroke colors directly to each category fill color (`#FF8C00`, `#FF2400`, `#9B30FF`, and `#FFD700`) in `ERROR_COLORS`.
+- Increased temporary error layer outline widths in millimeters via `outline_width_unit="MM"` (`5.0 mm` for Ring Self-Intersection, Internal Gap, and Sliver Polygon; `1.5 mm` for Overlap Polygon).
+
 ## [1.0.0] - 2026-11-17
 
 ### Added
