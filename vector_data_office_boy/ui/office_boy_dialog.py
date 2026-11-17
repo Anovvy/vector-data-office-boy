@@ -633,7 +633,7 @@ class OfficeBoyDialog(QtWidgets.QDialog, FORM_CLASS):
         self._help_widget_map: dict[QtCore.QObject, str] = {}
         self._signals_connected = False
 
-        self.setWindowFlag(Qt.Window, True)
+        self.setWindowFlag(Qt.WindowType.Window, True)
         self.setModal(False)
         self._configure_initial_layout()
         self._install_help_filters()
@@ -645,11 +645,11 @@ class OfficeBoyDialog(QtWidgets.QDialog, FORM_CLASS):
         """Tune splitter proportions and summary table header behavior."""
         self.splitterParameters.setSizes([560, 440])
         header = self.tblSummary.horizontalHeader()
-        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(4, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeMode.Stretch)
         self.progressBar.setRange(0, 100)
         self.progressBar.setValue(0)
 
@@ -735,9 +735,9 @@ class OfficeBoyDialog(QtWidgets.QDialog, FORM_CLASS):
     def eventFilter(self, watched: QtCore.QObject, event: QtCore.QEvent) -> bool:
         """Display contextual HTML documentation when hovering or focusing controls."""
         if event.type() in (
-            QEvent.FocusIn,
-            QEvent.Enter,
-            QEvent.MouseButtonPress,
+            QEvent.Type.FocusIn,
+            QEvent.Type.Enter,
+            QEvent.Type.MouseButtonPress,
         ):
             key = self._help_widget_map.get(watched)
             if key is not None:
@@ -775,7 +775,7 @@ class OfficeBoyDialog(QtWidgets.QDialog, FORM_CLASS):
             active_layer.id()
             if isinstance(active_layer, QgsVectorLayer)
             and active_layer.isValid()
-            and active_layer.geometryType() == QgsWkbTypes.PolygonGeometry
+            and active_layer.geometryType() == QgsWkbTypes.GeometryType.PolygonGeometry
             and not self._is_plugin_error_layer(active_layer)
             else None
         )
@@ -792,7 +792,7 @@ class OfficeBoyDialog(QtWidgets.QDialog, FORM_CLASS):
                 for layer in project.mapLayers().values()
                 if isinstance(layer, QgsVectorLayer)
                 and layer.isValid()
-                and layer.geometryType() == QgsWkbTypes.PolygonGeometry
+                and layer.geometryType() == QgsWkbTypes.GeometryType.PolygonGeometry
                 and not self._is_plugin_error_layer(layer)
             ]
             layers.sort(key=lambda lyr: lyr.name().lower())
@@ -891,7 +891,7 @@ class OfficeBoyDialog(QtWidgets.QDialog, FORM_CLASS):
         for col_idx, val in enumerate(values):
             item = QtWidgets.QTableWidgetItem(val)
             if col_idx in (2, 3):
-                item.setTextAlignment(int(Qt.AlignRight | Qt.AlignVCenter))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             self.tblSummary.setItem(row_idx, col_idx, item)
 
     def _execute_scan(
