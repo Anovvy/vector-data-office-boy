@@ -1,0 +1,44 @@
+[project]
+name = "vector-data-office-boy"
+version = "1.0.0"
+description = "Automated topology auditing and polygon geometry cleaning plugin for QGIS."
+readme = "README.md"
+license = { text = "GPL-2.0-or-later" }
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "data_test",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # handled or allowed for long UI help strings when clear
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["vector_data_office_boy"]
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv", "build", "dist", "data_test"]
+skips = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-ra --strict-markers"
