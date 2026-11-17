@@ -75,6 +75,13 @@ def _build_user_prompt(
     )
 
 
+CANDIDATE_MODELS = (
+    "gemini-3.8-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+)
+
+
 async def _run_antigravity_review(
     api_key: str,
     system_instruction: str,
@@ -83,33 +90,57 @@ async def _run_antigravity_review(
     from google.antigravity import Agent, LocalAgentConfig, types
     from google.antigravity.hooks import policy
 
-    config = LocalAgentConfig(
-        api_key=api_key,
-        system_instructions=types.TemplatedSystemInstructions(identity=system_instruction),
-        response_schema=QAReviewReport,
-        budget_config=types.BudgetConfig(
-            max_model_calls=4,
-            max_tool_calls=8,
-            max_total_tokens=120_000,
-        ),
-        capabilities=types.CapabilitiesConfig(
-            agent_behavior=types.AgentBehavior.AUTONOMOUS,
-        ),
-        policies=[
-            policy.allow("view_file"),
-            policy.allow("list_directory"),
-            policy.allow("search_directory"),
-            policy.allow("find_file"),
-            policy.deny_all(),
-        ],
-    )
-    async with Agent(config=config) as agent:
-        response = await agent.chat(user_prompt)
-        data = await response.structured_output()
-        if not data:
-            raw_text = await response.text()
-            data = json.loads(raw_text)
-        return QAReviewReport.model_validate(data), "Google Antigravity SDK"
+    last_error: Exception | None = None
+    for model_name in CANDIDATE_MODELS:
+        config = LocalAgentConfig(
+            api_key=api_key,
+            model=model_name,
+            system_instructions=types.TemplatedSystemInstructions(identity=system_instruction),
+            response_schema=QAReviewReport,
+            retry_config=types.RetryConfig(
+                api_retry=types.ModelAPIRetryConfig(
+                    max_retries=4,
+                    initial_sleep_duration_ms=2000,
+                    exponential_multiplier=2.0,
+                    jitter_range=0.2,
+                )
+            ),
+            budget_config=types.BudgetConfig(
+                max_model_calls=4,
+                max_tool_calls=8,
+                max_total_tokens=120_000,
+            ),
+            capabilities=types.CapabilitiesConfig(
+                agent_behavior=types.AgentBehavior.AUTONOMOUS,
+            ),
+            policies=[
+                policy.allow("view_file"),
+                policy.allow("list_directory"),
+                policy.allow("search_directory"),
+                policy.allow("find_file"),
+                policy.deny_all(),
+            ],
+        )
+        try:
+            async with Agent(config=config) as agent:
+                response = await agent.chat(user_prompt)
+                data = await response.structured_output()
+                if not data:
+                    raw_text = await response.text()
+                    if not raw_text or not raw_text.strip():
+                        raise RuntimeError(
+                            f"Model {model_name} returned empty output (possible transient 503)."
+                        )
+                    data = json.loads(raw_text)
+                return (
+                    QAReviewReport.model_validate(data),
+                    f"Google Antigravity SDK ({model_name})",
+                )
+        except Exception as exc:
+            last_error = exc
+            print(f"Antigravity model {model_name} failed ({exc}); trying next candidate...")
+
+    raise RuntimeError(f"All Antigravity candidate models failed: {last_error}")
 
 
 def _run_genai_fallback_review(
@@ -118,20 +149,32 @@ def _run_genai_fallback_review(
     user_prompt: str,
 ) -> tuple[QAReviewReport, str]:
     from google import genai
-    from google.genai import types as genai_types
 
     client = genai.Client(api_key=api_key)
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=user_prompt,
-        config=genai_types.GenerateContentConfig(
-            system_instruction=system_instruction,
-            response_mime_type="application/json",
-            response_schema=QAReviewReport,
-            temperature=0.1,
-        ),
-    )
-    return QAReviewReport.model_validate_json(response.text), "Gemini API (google-genai fallback)"
+    last_error: Exception | None = None
+    for model_name in CANDIDATE_MODELS:
+        try:
+            interaction = client.interactions.create(
+                model=model_name,
+                input=user_prompt,
+                system_instruction=system_instruction,
+                response_format={
+                    "type": "text",
+                    "mime_type": "application/json",
+                    "schema": QAReviewReport.model_json_schema(),
+                },
+            )
+            if not interaction.output_text:
+                raise RuntimeError(f"Interactions API returned empty output for {model_name}.")
+            return (
+                QAReviewReport.model_validate_json(interaction.output_text),
+                f"Gemini Interactions API ({model_name} fallback)",
+            )
+        except Exception as exc:
+            last_error = exc
+            print(f"Interactions fallback {model_name} failed ({exc}); trying next candidate...")
+
+    raise RuntimeError(f"All Interactions fallback candidate models failed: {last_error}")
 
 
 def _format_comment_markdown(
