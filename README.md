@@ -11,7 +11,7 @@
 
 Spatial planning datasets (such as Indonesian RTRW zoning maps) and land-cover polygons frequently accumulate topological defects during multi-editor digitizing, format conversions, and geoprocessing dissolves. These defects include figure-8 bow-tie self-intersections, acute digitizing spikes, partial and 100% contained overlaps, unattributed interior gaps, and microscopic or needle-thin sliver polygons. Manual vertex editing across hundreds or thousands of features is slow, error-prone, and often introduces secondary topological conflicts.
 
-**Vector Data Office Boy** is an all-in-one QGIS 3.x plugin (`qgisMinimumVersion=3.22`) engineered to automate polygon topology auditing and geometry cleaning from a single unified non-modal dialog and QGIS Processing provider:
+**Vector Data Office Boy** is an all-in-one QGIS 3.x plugin engineered to automate polygon topology auditing and geometry cleaning from a single unified non-modal dialog and QGIS Processing provider:
 
 - **Zero External Runtime Dependencies**: Uses standard PyQGIS and Shapely/GEOS libraries bundled with QGIS so end users can install directly from the QGIS Plugin Manager or a release ZIP without running `pip install`.
 - **Automatic Metric CRS Normalization**: Layers stored in geographic coordinates (such as `EPSG:4326` degrees) or non-metric projections are transparently projected to an appropriate local UTM metric CRS for accurate area (`m2`), perimeter (`m`), and Polsby-Popper calculations, then converted back to the source CRS with Z-dimension (`PolygonZ`) preservation.
@@ -22,7 +22,7 @@ Spatial planning datasets (such as Indonesian RTRW zoning maps) and land-cover p
 
 ## Core Topology Tools and Scan Output Colors
 
-Vector Data Office Boy enforces a deterministic four-stage topology cleaning order (`1 -> 2 -> 3 -> 4`):
+Vector Data Office Boy enforces a deterministic four-stage topology cleaning order:
 
 | Order | Section | Error Type Key | Temporary Memory Layer Name | Fill Color | Stroke Color | Scan Output | Fix It Behavior |
 |---|---|---|---|---|---|---|---|
@@ -217,13 +217,6 @@ python scripts/package_plugin.py --validate --check-tag v1.0.0
 2. **Antigravity PR QA Reviewer (`.github/workflows/pr_qa_review.yml` + `scripts/agy_pr_reviewer.py`)**: Uses Google Antigravity SDK (`LocalAgentConfig` with `policy.deny_all()`, `gemini-3.5-flash-lite` primary and `google-genai` fallback) to audit PR diffs against `AGENT.md` (zero-emoji policy, test immutability, Qt5 `.ui` compliance, and spatial edge-case safety).
 3. **Weekly Auto-Maintainer (`.github/workflows/auto_maintenance_agent.yml` + `scripts/agy_auto_maintainer.py`)**: Runs every Monday at `02:00 UTC` (`pip-audit`, upstream QGIS release tag check via GitHub API, Pytest, and Antigravity SDK analysis). Opens a review Pull Request if `needs_action=true`; never auto-merges into `main`.
 4. **Release CD Pipeline (`.github/workflows/release.yml`)**: Triggers on `v*.*.*` tag pushes, `workflow_dispatch`, or `main` pushes that bump `version=` in `vector_data_office_boy/metadata.txt` (automatically creating and pushing the corresponding `v<version>` tag if absent). Runs the full validation gate (`ruff`, `bandit`, `pytest`, `package_plugin.py --validate --check-tag`) and publishes a GitHub Release with `dist/vector_data_office_boy.zip` and `dist/SHA256SUMS.txt`.
-
-### Publishing a Release to the Official QGIS Plugin Repository
-
-1. Bump `version=` in `vector_data_office_boy/metadata.txt` and update `CHANGELOG.md` via a reviewed Pull Request into `main`.
-2. After the Project Owner merges the PR into `main`, `.github/workflows/release.yml` automatically tags `v<version>`, validates the archive, and attaches `vector_data_office_boy.zip` and `SHA256SUMS.txt` to the GitHub Release.
-3. Download `vector_data_office_boy.zip` from the GitHub Release (or run `python scripts/package_plugin.py --validate --check-tag v<version>`).
-4. Sign in to [plugins.qgis.org](https://plugins.qgis.org/) using your OSGeo/OAuth credentials, navigate to **Plugins -> Share a Plugin** (or **Upload a new version** on the plugin page), and upload `vector_data_office_boy.zip`.
 
 ---
 
