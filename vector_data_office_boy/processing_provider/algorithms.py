@@ -47,12 +47,13 @@ try:
         QgsProject,
         QgsWkbTypes,
     )
-    from qgis.PyQt.QtCore import QVariant
+    from qgis.PyQt.QtCore import QMetaType, QVariant
 
     QGIS_AVAILABLE = True
 except ImportError:  # pragma: no cover - allows importing package outside QGIS
     QGIS_AVAILABLE = False
     QgsProcessingAlgorithm = object  # type: ignore[assignment,misc]
+    QMetaType = None  # type: ignore[assignment,misc]
     QVariant = None  # type: ignore[assignment,misc]
 
 
@@ -103,7 +104,7 @@ class _BaseOfficeBoyAlgorithm(QgsProcessingAlgorithm):
         """Execute on the main thread when modifying QGIS layers and project state."""
         if not QGIS_AVAILABLE:
             return 0
-        return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
+        return super().flags() | QgsProcessingAlgorithm.Flag.FlagNoThreading
 
     def _require_valid_polygon_layer(
         self,
@@ -120,7 +121,7 @@ class _BaseOfficeBoyAlgorithm(QgsProcessingAlgorithm):
         layer = self.parameterAsVectorLayer(parameters, self.INPUT, context)
         if layer is None or not layer.isValid():
             raise QgsProcessingException("Please select a valid polygon vector layer.")
-        if layer.geometryType() != QgsWkbTypes.PolygonGeometry:
+        if layer.geometryType() != QgsWkbTypes.GeometryType.PolygonGeometry:
             raise QgsProcessingException(
                 "Input layer must be a polygon geometry layer (Polygon or MultiPolygon)."
             )
@@ -137,7 +138,7 @@ class _BaseOfficeBoyAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterVectorLayer(
                 self.INPUT,
                 "Input Polygon Layer",
-                [QgsProcessing.TypeVectorPolygon],
+                [QgsProcessing.SourceType.TypeVectorPolygon],
             )
         )
 
@@ -175,7 +176,7 @@ class _BaseOfficeBoyAlgorithm(QgsProcessingAlgorithm):
             crs = mem_layer.crs()
         else:
             fields = self._build_scan_fields()
-            wkb_type = QgsWkbTypes.MultiPolygon
+            wkb_type = QgsWkbTypes.Type.MultiPolygon
             crs_wkt = getattr(scan_result, "crs_wkt", "")
             crs = (
                 QgsCoordinateReferenceSystem.fromWkt(crs_wkt)
@@ -279,20 +280,44 @@ class _BaseOfficeBoyAlgorithm(QgsProcessingAlgorithm):
         }
 
     @staticmethod
-    def _build_scan_fields() -> Any:
+    def _build_field(name: str, kind: str) -> Any:
+        """Construct a QgsField using Qt6 QMetaType.Type with Qt5 QVariant.Type fallback."""
+        if QMetaType is not None and hasattr(QMetaType, "Type"):
+            qmeta_map = {
+                "int": QMetaType.Type.Int,
+                "double": QMetaType.Type.Double,
+                "string": QMetaType.Type.QString,
+            }
+            try:
+                return QgsField(name, qmeta_map[kind])
+            except TypeError:
+                pass
+        qvar_map = {
+            "int": QVariant.Type.Int,
+            "double": QVariant.Type.Double,
+            "string": QVariant.Type.String,
+        }
+        return QgsField(name, qvar_map[kind])
+
+    @classmethod
+    def _build_scan_fields(cls) -> Any:
         """Build the canonical 11-column diagnostic scan attribute schema."""
         fields = QgsFields()
-        fields.append(QgsField("error_id", QVariant.Int))
-        fields.append(QgsField("error_type", QVariant.String))
-        fields.append(QgsField("severity", QVariant.String))
-        fields.append(QgsField("fid_1", QVariant.Int))
-        fields.append(QgsField("fid_2", QVariant.String))
-        fields.append(QgsField("oid_ref", QVariant.String))
-        fields.append(QgsField("area_m2", QVariant.Double))
-        fields.append(QgsField("perim_m", QVariant.Double))
-        fields.append(QgsField("pp_index", QVariant.Double))
-        fields.append(QgsField("error_x", QVariant.Double))
-        fields.append(QgsField("error_y", QVariant.Double))
+        field_specs = (
+            ("error_id", "int"),
+            ("error_type", "string"),
+            ("severity", "string"),
+            ("fid_1", "int"),
+            ("fid_2", "string"),
+            ("oid_ref", "string"),
+            ("area_m2", "double"),
+            ("perim_m", "double"),
+            ("pp_index", "double"),
+            ("error_x", "double"),
+            ("error_y", "double"),
+        )
+        for name, kind in field_specs:
+            fields.append(cls._build_field(name, kind))
         return fields
 
     def _register_scan_outputs(self, output_label: str) -> None:
@@ -308,7 +333,7 @@ class _BaseOfficeBoyAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
                 output_label,
-                QgsProcessing.TypeVectorPolygon,
+                QgsProcessing.SourceType.TypeVectorPolygon,
             )
         )
         self.addOutput(QgsProcessingOutputNumber(self.ERROR_COUNT, "Detected Error Count"))
@@ -365,7 +390,7 @@ class ScanRingSelfIntersectionsAlgorithm(_BaseOfficeBoyAlgorithm):
             QgsProcessingParameterNumber(
                 self.SPIKE_ANGLE,
                 "Minimum Spike Vertex Angle (degrees)",
-                type=QgsProcessingParameterNumber.Double,
+                type=QgsProcessingParameterNumber.Type.Double,
                 defaultValue=1.0,
                 minValue=0.05,
                 maxValue=45.0,
@@ -414,7 +439,7 @@ class ScanOverlapsAlgorithm(_BaseOfficeBoyAlgorithm):
             QgsProcessingParameterNumber(
                 self.MIN_OVERLAP_AREA,
                 "Minimum Overlap Area (m2)",
-                type=QgsProcessingParameterNumber.Double,
+                type=QgsProcessingParameterNumber.Type.Double,
                 defaultValue=0.0001,
                 minValue=0.0,
                 maxValue=1000000.0,
@@ -506,7 +531,7 @@ class ScanSliversAlgorithm(_BaseOfficeBoyAlgorithm):
             QgsProcessingParameterNumber(
                 self.SLIVER_AREA,
                 "Absolute Sliver Area Threshold (m2)",
-                type=QgsProcessingParameterNumber.Double,
+                type=QgsProcessingParameterNumber.Type.Double,
                 defaultValue=10.0,
                 minValue=0.0,
                 maxValue=10000000.0,
@@ -516,7 +541,7 @@ class ScanSliversAlgorithm(_BaseOfficeBoyAlgorithm):
             QgsProcessingParameterNumber(
                 self.SLIVER_PP,
                 "Polsby-Popper Compactness Threshold",
-                type=QgsProcessingParameterNumber.Double,
+                type=QgsProcessingParameterNumber.Type.Double,
                 defaultValue=0.055,
                 minValue=0.0001,
                 maxValue=1.0,
@@ -526,7 +551,7 @@ class ScanSliversAlgorithm(_BaseOfficeBoyAlgorithm):
             QgsProcessingParameterNumber(
                 self.SLIVER_MAX_AREA_PP,
                 "Max Area for Compactness Rule (m2)",
-                type=QgsProcessingParameterNumber.Double,
+                type=QgsProcessingParameterNumber.Type.Double,
                 defaultValue=150.0,
                 minValue=0.0,
                 maxValue=10000000.0,
@@ -536,7 +561,7 @@ class ScanSliversAlgorithm(_BaseOfficeBoyAlgorithm):
             QgsProcessingParameterNumber(
                 self.PART_MIN_AREA,
                 "Minimum MultiPolygon Part Area (m2)",
-                type=QgsProcessingParameterNumber.Double,
+                type=QgsProcessingParameterNumber.Type.Double,
                 defaultValue=1.0,
                 minValue=0.0,
                 maxValue=1000000.0,
@@ -598,7 +623,7 @@ class FixRingSelfIntersectionsAlgorithm(_BaseOfficeBoyAlgorithm):
             QgsProcessingParameterNumber(
                 self.SPIKE_ANGLE,
                 "Minimum Spike Vertex Angle (degrees)",
-                type=QgsProcessingParameterNumber.Double,
+                type=QgsProcessingParameterNumber.Type.Double,
                 defaultValue=1.0,
                 minValue=0.05,
                 maxValue=45.0,
@@ -659,7 +684,7 @@ class FixOverlapsAlgorithm(_BaseOfficeBoyAlgorithm):
             QgsProcessingParameterNumber(
                 self.MIN_OVERLAP_AREA,
                 "Minimum Overlap Area (m2)",
-                type=QgsProcessingParameterNumber.Double,
+                type=QgsProcessingParameterNumber.Type.Double,
                 defaultValue=0.0001,
                 minValue=0.0,
                 maxValue=1000000.0,
@@ -767,7 +792,7 @@ class FixSliversAlgorithm(_BaseOfficeBoyAlgorithm):
             QgsProcessingParameterNumber(
                 self.SLIVER_AREA,
                 "Absolute Sliver Area Threshold (m2)",
-                type=QgsProcessingParameterNumber.Double,
+                type=QgsProcessingParameterNumber.Type.Double,
                 defaultValue=10.0,
                 minValue=0.0,
                 maxValue=10000000.0,
@@ -777,7 +802,7 @@ class FixSliversAlgorithm(_BaseOfficeBoyAlgorithm):
             QgsProcessingParameterNumber(
                 self.SLIVER_PP,
                 "Polsby-Popper Compactness Threshold",
-                type=QgsProcessingParameterNumber.Double,
+                type=QgsProcessingParameterNumber.Type.Double,
                 defaultValue=0.055,
                 minValue=0.0001,
                 maxValue=1.0,
@@ -787,7 +812,7 @@ class FixSliversAlgorithm(_BaseOfficeBoyAlgorithm):
             QgsProcessingParameterNumber(
                 self.SLIVER_MAX_AREA_PP,
                 "Max Area for Compactness Rule (m2)",
-                type=QgsProcessingParameterNumber.Double,
+                type=QgsProcessingParameterNumber.Type.Double,
                 defaultValue=150.0,
                 minValue=0.0,
                 maxValue=10000000.0,
@@ -797,7 +822,7 @@ class FixSliversAlgorithm(_BaseOfficeBoyAlgorithm):
             QgsProcessingParameterNumber(
                 self.PART_MIN_AREA,
                 "Minimum MultiPolygon Part Area (m2)",
-                type=QgsProcessingParameterNumber.Double,
+                type=QgsProcessingParameterNumber.Type.Double,
                 defaultValue=1.0,
                 minValue=0.0,
                 maxValue=1000000.0,

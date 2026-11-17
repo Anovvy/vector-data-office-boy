@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-11-17
+
+### Fixed
+- Replaced all 25 unscoped Qt5 and QGIS enums in `ui/office_boy_dialog.py` and `processing_provider/algorithms.py` with Qt6/PyQt6-compatible scoped enums (`Qt.WindowType`, `QEvent.Type`, `Qt.AlignmentFlag`, `QHeaderView.ResizeMode`, `QgsWkbTypes.GeometryType`, `QgsWkbTypes.Type`, `QgsProcessing.SourceType`, `QgsProcessingAlgorithm.Flag`, `QgsProcessingParameterNumber.Type`, `QMetaType.Type`, and `QVariant.Type`) so the plugin passes the official QGIS Plugin Repository Qt6 compatibility check while remaining backwards-compatible with QGIS 3.22+.
+- Declared `supportsQt6=True` in `vector_data_office_boy/metadata.txt`.
+
 ## [1.0.1] - 2026-11-17
 
 ### Changed

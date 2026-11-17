@@ -2,7 +2,7 @@
 name=Vector Data Office Boy
 qgisMinimumVersion=3.22
 description=Vector Data Office Boy can perform topology audits and automatic polygon geometry cleaning, thereby drastically reducing the amount of manual vertex editing required for spatial planning maps (RTRW) and land cover maps.
-version=1.0.1
+version=1.0.2
 author=Bayu Nabiil
 email=bayunabiil1365@gmail.com
 about=Vector Data Office Boy is an all-in-one topology auditing and automated geometry cleaning plugin for QGIS. Built for GIS analysts, urban planners, and spatial data engineers working with spatial planning (RTRW) and land cover datasets, it detects and repairs four critical polygon topology errors from a single unified dialog: (1) Ring Self-Intersections, (2) Overlapping Polygons, (3) Internal Gaps between polygons (strictly preserving outer dataset boundaries), and (4) Sliver Polygons. Diagnostic scans output separate color-coded temporary memory layers (Orange, Red, Purple, Yellow) for immediate visual inspection, while targeted fixes repair geometries and overwrite the source dataset directly in place.
@@ -16,3 +16,4 @@ icon=resources/icon.png
 experimental=False
 deprecated=False
 hasProcessingProvider=yes
+supportsQt6=True

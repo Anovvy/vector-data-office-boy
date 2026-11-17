@@ -137,15 +137,41 @@ def test_metadata_txt_required_keys() -> None:
     general = dict(parser.items("general"))
 
     assert general["name"] == "Vector Data Office Boy"
-    assert general["version"] == "1.0.1"
+    assert general["version"] == "1.0.2"
     assert general["qgisMinimumVersion"] == "3.22"
     assert general["author"] == "Bayu Nabiil"
     assert general["email"] == "bayunabiil1365@gmail.com"
     assert general["license"] == "GPL-2.0-or-later"
     assert general["icon"] == "resources/icon.png"
     assert general["hasProcessingProvider"] == "yes"
+    assert general["supportsQt6"] == "True"
     assert (PLUGIN_DIR / general["icon"]).is_file()
     assert (PLUGIN_DIR / "LICENSE").is_file()
+
+
+def test_qt6_scoped_enums_compliance() -> None:
+    """Verify plugin Python modules use Qt6-compatible scoped Qt and QGIS enums."""
+    unscoped_patterns = (
+        r"\bQt\.Window\b",
+        r"\bQt\.Align(?:Right|Left|Center|Top|Bottom|VCenter|HCenter)\b",
+        r"\bQEvent\.(?:FocusIn|Enter|MouseButtonPress)\b",
+        r"\bQHeaderView\.(?:ResizeToContents|Stretch)\b",
+        r"\bQgsWkbTypes\.(?:PolygonGeometry|MultiPolygon)\b",
+        r"\bQgsProcessing\.TypeVectorPolygon\b",
+        r"\bQgsProcessingAlgorithm\.FlagNoThreading\b",
+        r"\bQgsProcessingParameterNumber\.Double\b",
+        r"\bQVariant\.(?:Int|LongLong|Double|String)\b",
+    )
+    compiled = [re.compile(pattern) for pattern in unscoped_patterns]
+    for py_path in sorted(PLUGIN_DIR.rglob("*.py")):
+        if "__pycache__" in py_path.parts:
+            continue
+        source = py_path.read_text(encoding="utf-8")
+        for regex in compiled:
+            match = regex.search(source)
+            assert match is None, (
+                f"Unscoped Qt5/QGIS enum '{match.group(0)}' found in {py_path.relative_to(REPO_ROOT)}"
+            )
 
 
 def test_zero_emoji_compliance_in_plugin_and_readme() -> None:
