@@ -76,10 +76,11 @@ def _build_user_prompt(
 
 
 CANDIDATE_MODELS = (
-    "gemini-3.8-flash",
     "gemini-3.5-flash-lite",
     "gemini-3.1-flash-lite",
+    "gemini-3.8-flash",
 )
+MODEL_ATTEMPT_TIMEOUT_SECONDS = 25.0
 
 
 async def _run_antigravity_review(
@@ -99,37 +100,31 @@ async def _run_antigravity_review(
             response_schema=QAReviewReport,
             retry_config=types.RetryConfig(
                 api_retry=types.ModelAPIRetryConfig(
-                    max_retries=4,
-                    initial_sleep_duration_ms=2000,
-                    exponential_multiplier=2.0,
-                    jitter_range=0.2,
+                    max_retries=0,
                 )
             ),
             budget_config=types.BudgetConfig(
-                max_model_calls=4,
-                max_tool_calls=8,
+                max_model_calls=1,
+                max_tool_calls=0,
                 max_total_tokens=120_000,
             ),
             capabilities=types.CapabilitiesConfig(
                 agent_behavior=types.AgentBehavior.AUTONOMOUS,
             ),
-            policies=[
-                policy.allow("view_file"),
-                policy.allow("list_directory"),
-                policy.allow("search_directory"),
-                policy.allow("find_file"),
-                policy.deny_all(),
-            ],
+            policies=[policy.deny_all()],
         )
         try:
             async with Agent(config=config) as agent:
-                response = await agent.chat(user_prompt)
+                response = await asyncio.wait_for(
+                    agent.chat(user_prompt),
+                    timeout=MODEL_ATTEMPT_TIMEOUT_SECONDS,
+                )
                 data = await response.structured_output()
                 if not data:
                     raw_text = await response.text()
                     if not raw_text or not raw_text.strip():
                         raise RuntimeError(
-                            f"Model {model_name} returned empty output (possible transient 503)."
+                            f"Model {model_name} returned empty output (possible 429/503)."
                         )
                     data = json.loads(raw_text)
                 return (
