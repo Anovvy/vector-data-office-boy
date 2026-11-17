@@ -159,24 +159,6 @@ The plugin window is organized into two primary tabs (**Parameters** and **Log**
 
 ---
 
-## Customizing UI with Qt Designer
-
-The dialog layout is defined in `vector_data_office_boy/ui/office_boy_dialog_base.ui` using **100% standard Qt5 widgets** (no `<customwidgets>` or `Qgs*` classes). You can open and edit it directly inside standalone **Qt Designer** (`designer.exe` or `qt5-designer`) to adjust spacing, typography, or layout proportions.
-
-Do **not** rename or remove any of the protected `objectName` values below, as `office_boy_dialog.py` binds signals and contextual help directly to them:
-
-| Category | Protected `objectName` Values |
-|---|---|
-| Tabs and Containers | `tabMain`, `tabParameters`, `tabLog`, `splitterParameters`, `grpGeneral`, `grpSelfIntersection`, `grpOverlap`, `grpInternalGap`, `grpSliver`, `grpHelp`, `grpSummary`, `grpConsoleLog` |
-| General Controls | `cmbInputLayer`, `btnRefreshLayers`, `chkRecalcAttrs` |
-| Section 1 Controls | `chkPruneSpikes`, `spinSpikeAngle`, `btnScanSelfIntersect`, `btnFixSelfIntersect` |
-| Section 2 Controls | `cmbOverlapRule`, `spinMinOverlapArea`, `chkIncludeMicroOverlap`, `btnScanOverlap`, `btnFixOverlap` |
-| Section 3 Controls | `cmbGapRule`, `btnScanGap`, `btnFixGap` |
-| Section 4 Controls | `spinSliverArea`, `spinSliverPP`, `spinSliverMaxAreaPP`, `spinPartMinArea`, `cmbSliverRule`, `btnScanSliver`, `btnFixSliver` |
-| Help, Logging, and Footer | `txtParameterHelp`, `tblSummary`, `txtLog`, `btnClearLog`, `progressBar`, `btnClose` |
-
----
-
 ## Development, Testing, Security, and CI/CD
 
 ### Local Development Setup
