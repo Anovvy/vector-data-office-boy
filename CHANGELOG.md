@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-11-18
+
+### Fixed
+- Replaced `QVariant.Type.LongLong`, `QVariant.Type.Double`, `QVariant.Type.String`, and `QVariant.Type.Int` in `core/symbology.py` and `processing_provider/algorithms.py` fallback paths with `QVariant.LongLong`, `QVariant.Double`, `QVariant.String`, and `QVariant.Int` so the plugin passes all QGIS Plugin Repository Qt6 compatibility checks cleanly while keeping `QMetaType.Type` as primary Qt6 field constructor.
+
 ## [1.0.2] - 2026-11-17
 
 ### Fixed
