@@ -137,7 +137,7 @@ def test_metadata_txt_required_keys() -> None:
     general = dict(parser.items("general"))
 
     assert general["name"] == "Vector Data Office Boy"
-    assert general["version"] == "1.0.2"
+    assert general["version"] == "1.0.3"
     assert general["qgisMinimumVersion"] == "3.22"
     assert general["author"] == "Bayu Nabiil"
     assert general["email"] == "bayunabiil1365@gmail.com"
@@ -160,7 +160,7 @@ def test_qt6_scoped_enums_compliance() -> None:
         r"\bQgsProcessing\.TypeVectorPolygon\b",
         r"\bQgsProcessingAlgorithm\.FlagNoThreading\b",
         r"\bQgsProcessingParameterNumber\.Double\b",
-        r"\bQVariant\.(?:Int|LongLong|Double|String)\b",
+        r"\bQVariant\.Type\.\w+\b",
     )
     compiled = [re.compile(pattern) for pattern in unscoped_patterns]
     for py_path in sorted(PLUGIN_DIR.rglob("*.py")):

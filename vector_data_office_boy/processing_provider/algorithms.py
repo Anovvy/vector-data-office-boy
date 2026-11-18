@@ -281,7 +281,7 @@ class _BaseOfficeBoyAlgorithm(QgsProcessingAlgorithm):
 
     @staticmethod
     def _build_field(name: str, kind: str) -> Any:
-        """Construct a QgsField using Qt6 QMetaType.Type with Qt5 QVariant.Type fallback."""
+        """Construct a QgsField using Qt6 QMetaType.Type with Qt5 QVariant fallback."""
         if QMetaType is not None and hasattr(QMetaType, "Type"):
             qmeta_map = {
                 "int": QMetaType.Type.Int,
@@ -293,9 +293,9 @@ class _BaseOfficeBoyAlgorithm(QgsProcessingAlgorithm):
             except TypeError:
                 pass
         qvar_map = {
-            "int": QVariant.Type.Int,
-            "double": QVariant.Type.Double,
-            "string": QVariant.Type.String,
+            "int": QVariant.Int,
+            "double": QVariant.Double,
+            "string": QVariant.String,
         }
         return QgsField(name, qvar_map[kind])
 

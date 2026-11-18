@@ -1,6 +1,6 @@
 [project]
 name = "vector-data-office-boy"
-version = "1.0.2"
+version = "1.0.3"
 description = "Automated topology auditing and polygon geometry cleaning plugin for QGIS."
 readme = "README.md"
 license = { text = "GPL-2.0-or-later" }

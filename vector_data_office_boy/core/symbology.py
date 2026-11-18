@@ -71,9 +71,9 @@ def _make_qgs_field(name: str, kind: str) -> Any:
         except TypeError:
             pass
     qvar_map = {
-        "int": QVariant.Type.LongLong,
-        "double": QVariant.Type.Double,
-        "string": QVariant.Type.String,
+        "int": QVariant.LongLong,
+        "double": QVariant.Double,
+        "string": QVariant.String,
     }
     return QgsField(name, qvar_map[kind])
 
