@@ -2,9 +2,9 @@
 
 ![Vector Data Office Boy Hero Banner](docs/assets/hero_banner.png)
 
-[![CI Pipeline](https://github.com/Anovvy/vektor-data-office-boy/actions/workflows/ci.yml/badge.svg)](https://github.com/Anovvy/vektor-data-office-boy/actions/workflows/ci.yml)
+[![CI Pipeline](https://github.com/Anovvy/vector-data-office-boy/actions/workflows/ci.yml/badge.svg)](https://github.com/Anovvy/vector-data-office-boy/actions/workflows/ci.yml)
 [![QGIS Minimum Version](https://img.shields.io/badge/QGIS-%3E%3D%203.22-589632.svg)](https://qgis.org/)
-[![Plugin Version](https://img.shields.io/badge/Version-1.0.3-blue.svg)](https://github.com/Anovvy/vektor-data-office-boy/releases)
+[![Plugin Version](https://img.shields.io/badge/Version-1.0.3-blue.svg)](https://github.com/Anovvy/vector-data-office-boy/releases)
 [![License: GPL-2.0-or-later](https://img.shields.io/badge/License-GPL--2.0--or--later-orange.svg)](LICENSE)
 
 ## Overview and Problem Statement
@@ -68,7 +68,7 @@ All four **Scan** and four **Fix** operations are also registered under **Proces
 
 ### Option 2: Install from GitHub Releases ZIP
 
-1. Download `vector_data_office_boy.zip` and `SHA256SUMS.txt` from the [GitHub Releases](https://github.com/Anovvy/vektor-data-office-boy/releases) page.
+1. Download `vector_data_office_boy.zip` and `SHA256SUMS.txt` from the [GitHub Releases](https://github.com/Anovvy/vector-data-office-boy/releases) page.
 2. Optionally verify the archive checksum:
    ```bash
    sha256sum -c SHA256SUMS.txt
@@ -206,4 +206,4 @@ python scripts/package_plugin.py --validate --check-tag v1.0.3
 
 - **License**: GNU General Public License v2.0 or later (`GPL-2.0-or-later`). See [LICENSE](LICENSE) and [vector_data_office_boy/LICENSE](vector_data_office_boy/LICENSE).
 - **Author**: Bayu Nabiil (`bayunabiil1365@gmail.com`)
-- **Repository**: [https://github.com/Anovvy/vektor-data-office-boy](https://github.com/Anovvy/vektor-data-office-boy)
+- **Repository**: [https://github.com/Anovvy/vector-data-office-boy](https://github.com/Anovvy/vector-data-office-boy)
